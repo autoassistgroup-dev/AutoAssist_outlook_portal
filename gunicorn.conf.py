@@ -1,23 +1,23 @@
 # Gunicorn Configuration for AutoAssistGroup Support System
-# AWS EC2 Production Deployment
+# Railway / Container Deployment
 
 import multiprocessing
 import os
 
 # Server socket
-bind = "127.0.0.1:8000"
+# Bind to 0.0.0.0 (required for containers) on default port 8000
+bind = "0.0.0.0:8000"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = "gevent"
+# For containers, static number or CPU-based is fine. 4 is a good safe default.
+workers = 4
+# Use 'gthread' worker - stable and doesn't require gevent dependency
+worker_class = "gthread"
+threads = 4
 worker_connections = 1000
-timeout = 30
+timeout = 120
 keepalive = 2
-
-# Restart workers after this many requests, to help prevent memory leaks
-max_requests = 1000
-max_requests_jitter = 50
 
 # Logging
 # Log to stdout/stderr for Docker/Railway
@@ -31,34 +31,15 @@ proc_name = "autoassist_support"
 
 # Server mechanics
 daemon = False
-pidfile = "/var/run/gunicorn/autoassist.pid"
-user = "www-data"
-group = "www-data"
-tmp_upload_dir = None
-
-# SSL (if needed)
-# keyfile = "/path/to/keyfile"
-# certfile = "/path/to/certfile"
+# REMOVED: pidfile, user, group (Incompatible with serverless/containers)
 
 # Environment variables
 raw_env = [
     'FLASK_ENV=production',
-    'FLASK_DEBUG=False',
 ]
 
 # Preload app for better performance
 preload_app = True
 
-# Worker timeout for long-running requests
-timeout = 120
-
-# Graceful timeout
-graceful_timeout = 30
-
-# Forwarded allow ips (for nginx proxy)
-forwarded_allow_ips = "127.0.0.1"
-
-# Security
-limit_request_line = 4094
-limit_request_fields = 100
-limit_request_field_size = 8190
+# Forwarded allow ips (allows all for container network)
+forwarded_allow_ips = "*"
