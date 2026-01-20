@@ -30399,6 +30399,7 @@ def n8n_tickets_api():
                         'email': ticket_data.get('email', ''),
                         'subject': ticket_data.get('subject', 'No Subject'),
                         'body': ticket_data.get('body', ''),
+                        'draft_body': ticket_data.get('draft_body', ''),
                         'status': 'New',
                         'priority': ticket_data.get('priority', 'Medium'),
                         'classification': ticket_data.get('classification', 'General'),
@@ -30586,12 +30587,17 @@ def process_n8n_ticket_data(data):
                     })
         
         # Create simplified ticket data for acceptance (no database fields)
+        # [FIX] Capture draft response from N8N
+        draft_content = data.get('draft', '') or data.get('n8n_draft', '')
+        
         ticket_data = {
             'ticket_id': ticket_id,
             'name': name,
             'email': data.get('from', 'unknown@example.com'),
             'subject': data.get('subject', f"Email from {name}"),
             'body': data.get('body', ''),
+            'draft_body': draft_content,  # Capture the draft content
+            'draft': draft_content,       # Redundant copy just in case
             'classification': data.get('Classification', 'Support'),
             'priority': data.get('Priority', 'Medium'),
             'has_attachments': len(attachments) > 0,
